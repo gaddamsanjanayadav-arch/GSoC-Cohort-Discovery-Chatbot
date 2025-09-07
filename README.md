@@ -274,72 +274,76 @@ create table public."Element" (
 create index IF not exists idx_element_threadid on public."Element" using btree ("threadId") TABLESPACE pg_default;
 ```
 ```
-create table public."Element" (
+create table public."Feedback" (
   id uuid not null default extensions.uuid_generate_v4 (),
-  "threadId" uuid null,
-  type text null,
-  url text null,
-  "chainlitKey" text null,
-  name text not null,
-  display text null,
-  "objectKey" text null,
-  size text null,
-  page integer null,
-  "forIds" text[] null,
-  mime text null,
+  "forId" uuid not null,
+  "threadId" uuid not null,
+  value integer not null,
+  comment text null,
+  "createdAt" timestamp with time zone null default CURRENT_TIMESTAMP,
   "updatedAt" timestamp with time zone null default CURRENT_TIMESTAMP,
   "deletedAt" timestamp with time zone null,
-  "createdAt" timestamp with time zone null default CURRENT_TIMESTAMP,
-  constraint Element_pkey primary key (id),
-  constraint Element_threadId_fkey foreign KEY ("threadId") references "Thread" (id) on delete CASCADE
+  constraint Feedback_pkey primary key (id),
+  constraint Feedback_threadId_fkey foreign KEY ("threadId") references "Thread" (id) on delete CASCADE
 ) TABLESPACE pg_default;
 
-create index IF not exists idx_element_threadid on public."Element" using btree ("threadId") TABLESPACE pg_default;
+create index IF not exists idx_feedback_threadid on public."Feedback" using btree ("threadId") TABLESPACE pg_default;
+
+create index IF not exists idx_feedback_forid on public."Feedback" using btree ("forId") TABLESPACE pg_default;
 ```
 ```
-create table public."Element" (
+create table public."Step" (
   id uuid not null default extensions.uuid_generate_v4 (),
+  name text null default 'step'::text,
+  type text not null,
   "threadId" uuid null,
-  type text null,
-  url text null,
-  "chainlitKey" text null,
-  name text not null,
-  display text null,
-  "objectKey" text null,
-  size text null,
-  page integer null,
-  "forIds" text[] null,
-  mime text null,
-  "updatedAt" timestamp with time zone null default CURRENT_TIMESTAMP,
-  "deletedAt" timestamp with time zone null,
-  "createdAt" timestamp with time zone null default CURRENT_TIMESTAMP,
-  constraint Element_pkey primary key (id),
-  constraint Element_threadId_fkey foreign KEY ("threadId") references "Thread" (id) on delete CASCADE
-) TABLESPACE pg_default;
-
-create index IF not exists idx_element_threadid on public."Element" using btree ("threadId") TABLESPACE pg_default;
-```
-```
-create table public."Thread" (
-  id uuid not null default extensions.uuid_generate_v4 (),
-  "createdAt" timestamp with time zone null default CURRENT_TIMESTAMP,
-  name text null,
-  "userId" uuid null,
-  "userIdentifier" text null,
-  tags text[] null,
+  "parentId" uuid null,
+  streaming boolean null default false,
+  "waitForAnswer" boolean null default false,
+  "isError" boolean null default false,
   metadata jsonb null default '{}'::jsonb,
+  tags text[] null,
+  input text null,
+  output text null,
+  "createdAt" timestamp with time zone null default CURRENT_TIMESTAMP,
+  command text null,
+  start timestamp with time zone null,
+  "end" timestamp with time zone null,
+  generation jsonb null,
+  "showInput" text null,
+  language text null,
+  indent integer null default 0,
   "updatedAt" timestamp with time zone null default CURRENT_TIMESTAMP,
   "deletedAt" timestamp with time zone null,
-  participant jsonb null,
-  constraint Thread_pkey primary key (id),
-  constraint Thread_userId_fkey foreign KEY ("userId") references "User" (id) on delete CASCADE
+  "startTime" timestamp with time zone null,
+  "endTime" timestamp with time zone null,
+  "completionStartTime" timestamp with time zone null,
+  "completionEndTime" timestamp with time zone null,
+  "disableFeedback" boolean null default false,
+  constraint Step_pkey primary key (id),
+  constraint Step_parentId_fkey foreign KEY ("parentId") references "Step" (id) on delete CASCADE,
+  constraint Step_threadId_fkey foreign KEY ("threadId") references "Thread" (id) on delete CASCADE
 ) TABLESPACE pg_default;
 
-create index IF not exists idx_thread_userid on public."Thread" using btree ("userId") TABLESPACE pg_default;
+create index IF not exists idx_step_threadid on public."Step" using btree ("threadId") TABLESPACE pg_default;
 
-create index IF not exists idx_thread_useridentifier on public."Thread" using btree ("userIdentifier") TABLESPACE pg_default;
+create index IF not exists idx_step_parentid on public."Step" using btree ("parentId") TABLESPACE pg_default;
 
-create index IF not exists idx_thread_createdat on public."Thread" using btree ("createdAt" desc) TABLESPACE pg_default;
+create index IF not exists idx_step_createdat on public."Step" using btree ("createdAt" desc) TABLESPACE pg_default;
+```
+```
+create table public."User" (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  identifier text not null,
+  metadata jsonb null default '{}'::jsonb,
+  "createdAt" timestamp with time zone null default CURRENT_TIMESTAMP,
+  "updatedAt" timestamp with time zone null default CURRENT_TIMESTAMP,
+  "deletedAt" timestamp with time zone null,
+  constraint User_pkey primary key (id),
+  constraint User_identifier_key unique (identifier)
+) TABLESPACE pg_default;
+
+create index IF not exists idx_user_identifier on public."User" using btree (identifier) TABLESPACE pg_default;
 ```
 ```
 create table public."Thread" (
