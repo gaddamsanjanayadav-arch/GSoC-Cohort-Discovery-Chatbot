@@ -65,6 +65,12 @@ This project is a GraphQL generation agent that converts human language queries 
 1. After cloning the project, install dependencies:  
 You need to build frontend env and backend env seperately, because ```gen3``` and ```chainlit``` have version conflict on ```aiofiles```.  
 
+> **Performance note:** Schema linking and disambiguation now use batch
+> prompts instead of calling the LLM once per keyword. This eliminates the
+> N+1 latency bottleneck when resolving multiple ambiguous terms in a single
+> query (see Issue #9). The backend utilities `resolve_pcdc_ambiguities` and
+> `resolve_gitops_ambiguities` handle this automatically.
+
 > **Windows users:** Python 3.13 wheels for some packages (e.g. numpy) are not
 > always available; if you hit a build error while installing requirements, run
 > the command below first and try again.
